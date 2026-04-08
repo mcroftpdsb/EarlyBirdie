@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Early Birdie Tournament</title>
+<style>
+:root {
+  --navy:#16294d;
+  --navy-2:#223d72;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --blue:#3b82f6;
+  --slate:#64748b;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:#111827;
+}
+.header {
+  background:linear-gradient(135deg,var(--navy),var(--navy-2));
+  color:white;
+  padding:28px 20px 22px;
+  text-align:center;
+}
+.header h1 {
+  margin:0;
+  font-size:34px;
+  letter-spacing:.5px;
+}
+.header p {
+  margin:8px 0 0;
+  color:#dbe7ff;
+  font-size:14px;
+}
+.toolbar {
+  background:white;
+  border-bottom:1px solid var(--line);
+  padding:14px 18px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.toolbar-inner {
+  max-width:1400px;
+  margin:0 auto;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.search {
+  flex:1 1 320px;
+}
+.search input {
+  width:100%;
+  padding:12px 14px;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  font-size:14px;
+}
+.tabs {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.tab {
+  border:1px solid #cbd5e1;
+  background:#fff;
+  color:var(--navy);
+  padding:10px 14px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+}
+.tab.active {
+  background:var(--navy);
+  color:white;
+  border-color:var(--navy);
+}
+.page {
+  max-width:1400px;
+  margin:0 auto;
+  padding:22px 18px 40px;
+}
+.stats {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.stat {
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 4px 14px rgba(0,0,0,.06);
+  border:1px solid rgba(22,41,77,.06);
+}
+.stat .label {
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:6px;
+}
+.stat .value {
+  font-size:28px;
+  font-weight:800;
+  color:var(--navy);
+}
+.section {
+  margin-top:26px;
+}
+.section h2 {
+  margin:0 0 14px;
+  color:var(--navy);
+  font-size:24px;
+}
+.match-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+  gap:14px;
+}
+.match-card {
+  background:white;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.07);
+  border-left:6px solid #cbd5e1;
+}
+.match-card.live { border-left-color:var(--green); }
+.match-card.ondeck { border-left-color:var(--amber); }
+.match-card.upcoming { border-left-color:var(--blue); }
+.match-card.completed { border-left-color:var(--slate); }
+.match-top {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:10px;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:700;
+}
+.match-id {
+  color:var(--navy);
+  font-weight:800;
+}
+.team-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  background:#f8fafc;
+  border:1px solid #edf2f7;
+  border-radius:12px;
+  margin-bottom:8px;
+}
+.team-row:last-child { margin-bottom:0; }
+.team-row.winner {
+  background:#ecfdf5;
+  border-color:#bbf7d0;
+  font-weight:800;
+  color:#166534;
+}
+.team-name {
+  line-height:1.3;
+}
+.score {
+  font-weight:800;
+  white-space:nowrap;
+}
+.meta {
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+}
+.empty {
+  background:white;
+  border:1px dashed #cbd5e1;
+  border-radius:16px;
+  padding:24px;
+  color:var(--muted);
+  text-align:center;
+  font-style:italic;
+}
+.standings-wrap {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
+}
+.pool-card {
+  background:white;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.07);
+}
+.pool-card h3 {
+  margin:0 0 10px;
+  color:var(--navy);
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+th, td {
+  padding:8px 6px;
+  border-bottom:1px solid #eef2f7;
+  text-align:left;
+}
+th {
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+}
+.bracket-scroll {
+  overflow-x:auto;
+  padding-bottom:8px;
+}
+.bracket {
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:minmax(250px, 1fr);
+  gap:18px;
+  align-items:start;
+  min-width:max-content;
+}
+.round-col {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.round-title {
+  text-align:center;
+  color:var(--navy);
+  font-weight:800;
+  font-size:18px;
+  margin-bottom:4px;
+}
+.bracket-match {
+  background:var(--navy);
+  color:white;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 8px 18px rgba(22,41,77,.18);
+}
+.bracket-match .mid {
+  font-size:12px;
+  color:#dbe7ff;
+  margin-bottom:10px;
+  font-weight:700;
+}
+.bteam {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.08);
+  margin-bottom:8px;
+}
+.bteam:last-child { margin-bottom:0; }
+.bteam.winner {
+  background:white;
+  color:var(--navy);
+  font-weight:800;
+}
+.note {
+  background:#eef2ff;
+  color:var(--navy);
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:13px;
+  line-height:1.45;
+  border:1px solid #dbeafe;
+}
+.footer {
+  margin-top:26px;
+  font-size:12px;
+  color:var(--muted);
+  text-align:center;
+}
+@media (max-width: 720px) {
+  .header h1 { font-size:28px; }
+  .section h2 { font-size:22px; }
+}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Early Birdie Tournament</h1>
+    <p>Built from your Excel tournament setup. Pool matches use player/team names from the workbook wherever available.</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <div class="search"><input id="searchBox" type="text" placeholder="Search by player, school, or team..." /></div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="stats" id="stats"></div>
+
+    <div class="note">
+      Matches with complete names were pulled directly from the spreadsheet. Any remaining placeholder entries only appear where the workbook still does not provide a resolved participant, such as unresolved future winners or empty Mixed Doubles team slots.
+    </div>
+
+    <div class="section">
+      <h2>Now Playing</h2>
+      <div id="liveMatches" class="match-grid"></div>
+    </div>
+
+    <div class="section">
+      <h2>On Deck</h2>
+      <div id="onDeckMatches" class="match-grid"></div>
+    </div>
+
+    <div class="section">
+      <h2>Upcoming Matches</h2>
+      <div id="upcomingMatches" class="match-grid"></div>
+    </div>
+
+    <div class="section">
+      <h2>Completed Matches</h2>
+      <div id="completedMatches" class="match-grid"></div>
+    </div>
+
+    <div class="section">
+      <h2>Pool Standings</h2>
+      <div id="standings"></div>
+    </div>
+
+    <div class="section">
+      <h2>Playoff Brackets</h2>
+      <div id="playoffs"></div>
+    </div>
+
+    <div class="footer">Generated from Excel workbook data.</div>
+  </div>
+
+<script>
+const DATA = {"title": "Early Birdie Tournament", "divisions": ["Boys Singles", "Girls Singles", "Girls Doubles", "Boys Doubles", "Mixed Doubles"], "matches": [{"division": "Boys Singles", "pool": "A", "matchId": 1, "stage": "Pool", "teamA": "GF-BS1 - Alex", "teamB": "NP-BS4 - Sarvesh", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 2, "stage": "Pool", "teamA": "BC-BS2 - Corrdelle", "teamB": "HL-BS3 - Bilal", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 3, "stage": "Pool", "teamA": "BC-BS1 - Tye", "teamB": "CP-BS1 - Agrim", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 4, "stage": "Pool", "teamA": "HL-BS2 - Ardwin", "teamB": "NP-BS3 - Ryan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 5, "stage": "Pool", "teamA": "HL-BS1 - Gurekam", "teamB": "BC-BS3 - Meshv", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 6, "stage": "Pool", "teamA": "NP-BS2 - Jatin", "teamB": "CP-BS3 - Digvijay", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 7, "stage": "Pool", "teamA": "CP-GS1 - Sneha", "teamB": "BC-GS1 - Ruheen", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 8, "stage": "Pool", "teamA": "NP-GS2 - Sarah", "teamB": "HL-GS3 - HL-GS3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 9, "stage": "Pool", "teamA": "NP-GS1 - Pavit", "teamB": "GF-GS1 - Husna", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 10, "stage": "Pool", "teamA": "HL-GS2 - HL-GS2", "teamB": "NP-GS5 - Ayesha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 11, "stage": "Pool", "teamA": "CP-GS2 - Tashvi", "teamB": "NP-GS4 - Siana", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 12, "stage": "Pool", "teamA": "NP-GS3 - Swastha", "teamB": "HL-GS1 - HL-GS1", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 13, "stage": "Pool", "teamA": "NP-GD1 - Jeshvi / Sahibdeep", "teamB": "BC-GD1 - Amanie / Baani", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 14, "stage": "Pool", "teamA": "CP-GD2 - Savvy / Yashvi", "teamB": "GF-GD3 - Nandita / Leisha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 15, "stage": "Pool", "teamA": "NP-GD3 - Sneha / Ashmita", "teamB": "NP-GD4 - Nylie / Sanskriti", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 16, "stage": "Pool", "teamA": "CP-GD1 - Evelyn / Viha", "teamB": "GF-GD2 - Shiza / Tala", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 17, "stage": "Pool", "teamA": "HL-GD2 - Nimar / Sneha", "teamB": "CP-GD3 - Disha / Rishva", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 18, "stage": "Pool", "teamA": "GF-GD1 - Larita / Rona", "teamB": "NP-GD2 - Aagman / Suhani", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 19, "stage": "Pool", "teamA": "BC-BD1 - Arjun / Jovin", "teamB": "CP-BD1 - Edwyn / Jaskaran", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 20, "stage": "Pool", "teamA": "HL-BD2 - HL-BD2 / HL-BD2B", "teamB": "NP-BD3 - Ishaan / Wildan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 21, "stage": "Pool", "teamA": "HL-BD1 - Angad / TBD", "teamB": "GF-BD1 - Vihaan / Smarth", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 22, "stage": "Pool", "teamA": "NP-BD2 - Aidan / Aryan", "teamB": "CP-BD3 - Aarav / Kavan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 23, "stage": "Pool", "teamA": "NP-BD1 - Vihaan / Darshil", "teamB": "NP-BD4 - Mason / Binuka", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 24, "stage": "Pool", "teamA": "CP-BD2 - Mahin / Jashandeep", "teamB": "GF-BD2 - Ethan / Mehaan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 25, "stage": "Pool", "teamA": "HL-BS3 - Bilal", "teamB": "GF-BS1 - Alex", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 26, "stage": "Pool", "teamA": "NP-BS4 - Sarvesh", "teamB": "CP-BS2 - Aarva", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 27, "stage": "Pool", "teamA": "NP-BS3 - Ryan", "teamB": "BC-BS1 - Tye", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 28, "stage": "Pool", "teamA": "CP-BS1 - Agrim", "teamB": "GF-BS2 - Austin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 29, "stage": "Pool", "teamA": "CP-BS3 - Digvijay", "teamB": "HL-BS1 - Gurekam", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 30, "stage": "Pool", "teamA": "BC-BS3 - Meshv", "teamB": "GF-BS2 - Austin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 31, "stage": "Pool", "teamA": "HL-GS3 - HL-GS3", "teamB": "CP-GS1 - Sneha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 32, "stage": "Pool", "teamA": "BC-GS1 - Ruheen", "teamB": "GF-GS3 - Siddhi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 33, "stage": "Pool", "teamA": "NP-GS5 - Ayesha", "teamB": "NP-GS1 - Pavit", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 34, "stage": "Pool", "teamA": "GF-GS1 - Husna", "teamB": "CP-GS3 - Siya", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 35, "stage": "Pool", "teamA": "HL-GS1 - HL-GS1", "teamB": "CP-GS2 - Tashvi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 36, "stage": "Pool", "teamA": "NP-GS4 - Siana", "teamB": "GF-GS2 - Ella", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 37, "stage": "Pool", "teamA": "GF-GD3 - Nandita / Leisha", "teamB": "NP-GD1 - Jeshvi / Sahibdeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 38, "stage": "Pool", "teamA": "BC-GD1 - Amanie / Baani", "teamB": "HL-GD3 - Kalyani / Saahiba", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 39, "stage": "Pool", "teamA": "GF-GD2 - Shiza / Tala", "teamB": "NP-GD3 - Sneha / Ashmita", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 40, "stage": "Pool", "teamA": "NP-GD4 - Nylie / Sanskriti", "teamB": "HL-GD1 - Kiran / Prabhleen", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 41, "stage": "Pool", "teamA": "NP-GD2 - Aagman / Suhani", "teamB": "HL-GD2 - Nimar / Sneha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 42, "stage": "Pool", "teamA": "CP-GD3 - Disha / Rishva", "teamB": "BC-GD2 - BC-GD2 / BC-GD2B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 43, "stage": "Pool", "teamA": "NP-BD3 - Ishaan / Wildan", "teamB": "BC-BD1 - Arjun / Jovin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 44, "stage": "Pool", "teamA": "CP-BD1 - Edwyn / Jaskaran", "teamB": "GF-BD3 - Ali / Abhihdeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 45, "stage": "Pool", "teamA": "CP-BD3 - Aarav / Kavan", "teamB": "HL-BD1 - Angad / TBD", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 46, "stage": "Pool", "teamA": "GF-BD1 - Vihaan / Smarth", "teamB": "BC-BD2 - Gurjap / Matthew", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 47, "stage": "Pool", "teamA": "GF-BD2 - Ethan / Mehaan", "teamB": "NP-BD1 - Vihaan / Darshil", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 48, "stage": "Pool", "teamA": "NP-BD4 - Mason / Binuka", "teamB": "HL-BD3 - HL-BD3 / HL-BD3B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 49, "stage": "Pool", "teamA": "CP-BS2 - Aarva", "teamB": "HL-BS3 - Bilal", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 50, "stage": "Pool", "teamA": "GF-BS1 - Alex", "teamB": "BC-BS2 - Corrdelle", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 51, "stage": "Pool", "teamA": "GF-BS2 - Austin", "teamB": "NP-BS3 - Ryan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 52, "stage": "Pool", "teamA": "BC-BS1 - Tye", "teamB": "HL-BS2 - Ardwin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 53, "stage": "Pool", "teamA": "GF-BS2 - Austin", "teamB": "CP-BS3 - Digvijay", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 54, "stage": "Pool", "teamA": "HL-BS1 - Gurekam", "teamB": "NP-BS2 - Jatin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 55, "stage": "Pool", "teamA": "GF-GS3 - Siddhi", "teamB": "HL-GS3 - HL-GS3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 56, "stage": "Pool", "teamA": "CP-GS1 - Sneha", "teamB": "NP-GS2 - Sarah", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 57, "stage": "Pool", "teamA": "CP-GS3 - Siya", "teamB": "NP-GS5 - Ayesha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 58, "stage": "Pool", "teamA": "NP-GS1 - Pavit", "teamB": "HL-GS2 - HL-GS2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 59, "stage": "Pool", "teamA": "GF-GS2 - Ella", "teamB": "HL-GS1 - HL-GS1", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 60, "stage": "Pool", "teamA": "CP-GS2 - Tashvi", "teamB": "NP-GS3 - Swastha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 61, "stage": "Pool", "teamA": "HL-GD3 - Kalyani / Saahiba", "teamB": "GF-GD3 - Nandita / Leisha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 62, "stage": "Pool", "teamA": "NP-GD1 - Jeshvi / Sahibdeep", "teamB": "CP-GD2 - Savvy / Yashvi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 63, "stage": "Pool", "teamA": "HL-GD1 - Kiran / Prabhleen", "teamB": "GF-GD2 - Shiza / Tala", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 64, "stage": "Pool", "teamA": "NP-GD3 - Sneha / Ashmita", "teamB": "CP-GD1 - Evelyn / Viha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 65, "stage": "Pool", "teamA": "BC-GD2 - BC-GD2 / BC-GD2B", "teamB": "NP-GD2 - Aagman / Suhani", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 66, "stage": "Pool", "teamA": "HL-GD2 - Nimar / Sneha", "teamB": "GF-GD1 - Larita / Rona", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 67, "stage": "Pool", "teamA": "GF-BD3 - Ali / Abhihdeep", "teamB": "NP-BD3 - Ishaan / Wildan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 68, "stage": "Pool", "teamA": "BC-BD1 - Arjun / Jovin", "teamB": "HL-BD2 - HL-BD2 / HL-BD2B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 69, "stage": "Pool", "teamA": "BC-BD2 - Gurjap / Matthew", "teamB": "CP-BD3 - Aarav / Kavan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 70, "stage": "Pool", "teamA": "HL-BD1 - Angad / TBD", "teamB": "NP-BD2 - Aidan / Aryan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 71, "stage": "Pool", "teamA": "HL-BD3 - HL-BD3 / HL-BD3B", "teamB": "GF-BD2 - Ethan / Mehaan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 72, "stage": "Pool", "teamA": "NP-BD1 - Vihaan / Darshil", "teamB": "CP-BD2 - Mahin / Jashandeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 73, "stage": "Pool", "teamA": "BC-BS2 - Corrdelle", "teamB": "CP-BS2 - Aarva", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 74, "stage": "Pool", "teamA": "HL-BS3 - Bilal", "teamB": "NP-BS4 - Sarvesh", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 75, "stage": "Pool", "teamA": "HL-BS2 - Ardwin", "teamB": "GF-BS2 - Austin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 76, "stage": "Pool", "teamA": "NP-BS3 - Ryan", "teamB": "CP-BS1 - Agrim", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 77, "stage": "Pool", "teamA": "NP-BS2 - Jatin", "teamB": "GF-BS2 - Austin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 78, "stage": "Pool", "teamA": "CP-BS3 - Digvijay", "teamB": "BC-BS3 - Meshv", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 79, "stage": "Pool", "teamA": "NP-GS2 - Sarah", "teamB": "GF-GS3 - Siddhi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 80, "stage": "Pool", "teamA": "HL-GS3 - HL-GS3", "teamB": "BC-GS1 - Ruheen", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 81, "stage": "Pool", "teamA": "HL-GS2 - HL-GS2", "teamB": "CP-GS3 - Siya", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 82, "stage": "Pool", "teamA": "NP-GS5 - Ayesha", "teamB": "GF-GS1 - Husna", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 83, "stage": "Pool", "teamA": "NP-GS3 - Swastha", "teamB": "GF-GS2 - Ella", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 84, "stage": "Pool", "teamA": "HL-GS1 - HL-GS1", "teamB": "NP-GS4 - Siana", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 85, "stage": "Pool", "teamA": "CP-GD2 - Savvy / Yashvi", "teamB": "HL-GD3 - Kalyani / Saahiba", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 86, "stage": "Pool", "teamA": "GF-GD3 - Nandita / Leisha", "teamB": "BC-GD1 - Amanie / Baani", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 87, "stage": "Pool", "teamA": "CP-GD1 - Evelyn / Viha", "teamB": "HL-GD1 - Kiran / Prabhleen", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 88, "stage": "Pool", "teamA": "GF-GD2 - Shiza / Tala", "teamB": "NP-GD4 - Nylie / Sanskriti", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 89, "stage": "Pool", "teamA": "GF-GD1 - Larita / Rona", "teamB": "BC-GD2 - BC-GD2 / BC-GD2B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 90, "stage": "Pool", "teamA": "NP-GD2 - Aagman / Suhani", "teamB": "CP-GD3 - Disha / Rishva", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 91, "stage": "Pool", "teamA": "HL-BD2 - HL-BD2 / HL-BD2B", "teamB": "GF-BD3 - Ali / Abhihdeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 92, "stage": "Pool", "teamA": "NP-BD3 - Ishaan / Wildan", "teamB": "CP-BD1 - Edwyn / Jaskaran", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 93, "stage": "Pool", "teamA": "NP-BD2 - Aidan / Aryan", "teamB": "BC-BD2 - Gurjap / Matthew", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 94, "stage": "Pool", "teamA": "CP-BD3 - Aarav / Kavan", "teamB": "GF-BD1 - Vihaan / Smarth", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 95, "stage": "Pool", "teamA": "CP-BD2 - Mahin / Jashandeep", "teamB": "HL-BD3 - HL-BD3 / HL-BD3B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 96, "stage": "Pool", "teamA": "GF-BD2 - Ethan / Mehaan", "teamB": "NP-BD4 - Mason / Binuka", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 97, "stage": "Pool", "teamA": "NP-BS4 - Sarvesh", "teamB": "BC-BS2 - Corrdelle", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "A", "matchId": 98, "stage": "Pool", "teamA": "CP-BS2 - Aarva", "teamB": "GF-BS1 - Alex", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 99, "stage": "Pool", "teamA": "CP-BS1 - Agrim", "teamB": "HL-BS2 - Ardwin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "B", "matchId": 100, "stage": "Pool", "teamA": "GF-BS2 - Austin", "teamB": "BC-BS1 - Tye", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 101, "stage": "Pool", "teamA": "BC-BS3 - Meshv", "teamB": "NP-BS2 - Jatin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "C", "matchId": 102, "stage": "Pool", "teamA": "GF-BS2 - Austin", "teamB": "HL-BS1 - Gurekam", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 103, "stage": "Pool", "teamA": "BC-GS1 - Ruheen", "teamB": "NP-GS2 - Sarah", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "A", "matchId": 104, "stage": "Pool", "teamA": "GF-GS3 - Siddhi", "teamB": "CP-GS1 - Sneha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 105, "stage": "Pool", "teamA": "GF-GS1 - Husna", "teamB": "HL-GS2 - HL-GS2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "B", "matchId": 106, "stage": "Pool", "teamA": "CP-GS3 - Siya", "teamB": "NP-GS1 - Pavit", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 107, "stage": "Pool", "teamA": "NP-GS4 - Siana", "teamB": "NP-GS3 - Swastha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "C", "matchId": 108, "stage": "Pool", "teamA": "GF-GS2 - Ella", "teamB": "CP-GS2 - Tashvi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 109, "stage": "Pool", "teamA": "BC-GD1 - Amanie / Baani", "teamB": "CP-GD2 - Savvy / Yashvi", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "A", "matchId": 110, "stage": "Pool", "teamA": "HL-GD3 - Kalyani / Saahiba", "teamB": "NP-GD1 - Jeshvi / Sahibdeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 111, "stage": "Pool", "teamA": "NP-GD4 - Nylie / Sanskriti", "teamB": "CP-GD1 - Evelyn / Viha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "B", "matchId": 112, "stage": "Pool", "teamA": "HL-GD1 - Kiran / Prabhleen", "teamB": "NP-GD3 - Sneha / Ashmita", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 113, "stage": "Pool", "teamA": "CP-GD3 - Disha / Rishva", "teamB": "GF-GD1 - Larita / Rona", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "C", "matchId": 114, "stage": "Pool", "teamA": "BC-GD2 - BC-GD2 / BC-GD2B", "teamB": "HL-GD2 - Nimar / Sneha", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 115, "stage": "Pool", "teamA": "CP-BD1 - Edwyn / Jaskaran", "teamB": "HL-BD2 - HL-BD2 / HL-BD2B", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "A", "matchId": 116, "stage": "Pool", "teamA": "GF-BD3 - Ali / Abhihdeep", "teamB": "BC-BD1 - Arjun / Jovin", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 117, "stage": "Pool", "teamA": "GF-BD1 - Vihaan / Smarth", "teamB": "NP-BD2 - Aidan / Aryan", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "B", "matchId": 118, "stage": "Pool", "teamA": "BC-BD2 - Gurjap / Matthew", "teamB": "HL-BD1 - Angad / TBD", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 119, "stage": "Pool", "teamA": "NP-BD4 - Mason / Binuka", "teamB": "CP-BD2 - Mahin / Jashandeep", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "C", "matchId": 120, "stage": "Pool", "teamA": "HL-BD3 - HL-BD3 / HL-BD3B", "teamB": "NP-BD1 - Vihaan / Darshil", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 121, "stage": "QF", "teamA": "Seed 1", "teamB": "Seed 8", "scoreA": "21", "scoreB": "5", "winner": "Seed 1", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 122, "stage": "QF", "teamA": "Seed 2", "teamB": "Seed 7", "scoreA": "21", "scoreB": "5", "winner": "Seed 2", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 123, "stage": "QF", "teamA": "Seed 3", "teamB": "Seed 6", "scoreA": "21", "scoreB": "5", "winner": "Seed 3", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 124, "stage": "QF", "teamA": "Seed 4", "teamB": "Seed 5", "scoreA": "21", "scoreB": "5", "winner": "Seed 4", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 125, "stage": "QF", "teamA": "Winner of Match 169", "teamB": "Winner of Match 170", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 126, "stage": "QF", "teamA": "Winner of Match 171", "teamB": "Winner of Match 172", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 127, "stage": "QF", "teamA": "Winner of Match 189", "teamB": "Winner of Match 190", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 128, "stage": "QF", "teamA": "Winner of Match 191", "teamB": "Winner of Match 192", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 129, "stage": "QF", "teamA": "Winner of Match 173", "teamB": "Winner of Match 174", "scoreA": "15 / 15", "scoreB": "2 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 130, "stage": "QF", "teamA": "Winner of Match 175", "teamB": "Winner of Match 176", "scoreA": "15 / 15", "scoreB": "3 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 131, "stage": "QF", "teamA": "Winner of Match 193", "teamB": "Winner of Match 194", "scoreA": "15 / 15", "scoreB": "3 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 132, "stage": "QF", "teamA": "Winner of Match 195", "teamB": "Winner of Match 196", "scoreA": "15 / 15", "scoreB": "1 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 133, "stage": "QF", "teamA": "Winner of Match 177", "teamB": "Winner of Match 178", "scoreA": "15 / 15", "scoreB": "2 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 134, "stage": "QF", "teamA": "Winner of Match 179", "teamB": "Winner of Match 180", "scoreA": "15 / 15", "scoreB": "2 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 135, "stage": "QF", "teamA": "Winner of Match 197", "teamB": "Winner of Match 198", "scoreA": "15 / 15", "scoreB": "2 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 136, "stage": "QF", "teamA": "Winner of Match 199", "teamB": "Winner of Match 200", "scoreA": "15 / 15", "scoreB": "3 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 137, "stage": "SF", "teamA": "TBD", "teamB": "TBD", "scoreA": "32", "scoreB": "3", "winner": "TBD", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 138, "stage": "SF", "teamA": "TBD", "teamB": "TBD", "scoreA": "32", "scoreB": "3", "winner": "TBD", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 139, "stage": "SF", "teamA": "Winner of Match 209", "teamB": "Winner of Match 210", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 140, "stage": "SF", "teamA": "Winner of Match 211", "teamB": "Winner of Match 212", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 141, "stage": "SF", "teamA": "Winner of Match 213", "teamB": "Winner of Match 214", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 142, "stage": "SF", "teamA": "Winner of Match 215", "teamB": "Winner of Match 216", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 143, "stage": "SF", "teamA": "Winner of Match 217", "teamB": "Winner of Match 218", "scoreA": "15 / 15", "scoreB": "3 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 144, "stage": "SF", "teamA": "Winner of Match 219", "teamB": "Winner of Match 220", "scoreA": "15 / 15", "scoreB": "3 / 3", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Singles", "pool": "", "matchId": 145, "stage": "Finals", "teamA": "TBD", "teamB": "TBD", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Singles", "pool": "", "matchId": 146, "stage": "Final", "teamA": "Winner of Match 225", "teamB": "Winner of Match 226", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Girls Doubles", "pool": "", "matchId": 147, "stage": "Final", "teamA": "Winner of Match 227", "teamB": "Winner of Match 228", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Boys Doubles", "pool": "", "matchId": 148, "stage": "Final", "teamA": "Winner of Match 229", "teamB": "Winner of Match 230", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 161, "stage": "R1", "teamA": "Pool A #1", "teamB": "Pool D #4", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 162, "stage": "R1", "teamA": "Pool C #2", "teamB": "Pool B #3", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 163, "stage": "R1", "teamA": "Pool B #1", "teamB": "Pool A #4", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 164, "stage": "R1", "teamA": "Pool D #2", "teamB": "Pool C #3", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 181, "stage": "R1", "teamA": "Pool C #1", "teamB": "Pool B #4", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 182, "stage": "R1", "teamA": "Pool A #2", "teamB": "Pool D #3", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 183, "stage": "R1", "teamA": "Pool D #1", "teamB": "Pool C #4", "scoreA": "21", "scoreB": "2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 184, "stage": "R1", "teamA": "Pool B #2", "teamB": "Pool A #3", "scoreA": "21", "scoreB": "0", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 201, "stage": "QF", "teamA": "Winner of Match 161", "teamB": "Winner of Match 161", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 202, "stage": "QF", "teamA": "Winner of Match 163", "teamB": "Winner of Match 164", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 203, "stage": "QF", "teamA": "Winner of Match 181", "teamB": "Winner of Match 182", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 204, "stage": "QF", "teamA": "Winner of Match 183", "teamB": "Winner of Match 184", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 221, "stage": "SF", "teamA": "Winner of Match 201", "teamB": "Winner of Match 202", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 222, "stage": "SF", "teamA": "Winner of Match 203", "teamB": "Winner of Match 204", "scoreA": "15 / 15", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "", "matchId": 231, "stage": "Final", "teamA": "Winner of Match 221", "teamB": "Winner of Match 222", "scoreA": "21 / 21", "scoreB": "2 / 2", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 3", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "A", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 3", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "B", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 3", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "C", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 2", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 3", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 1", "teamB": "Seed 4", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}, {"division": "Mixed Doubles", "pool": "D", "matchId": "", "stage": "Pool", "teamA": "Seed 2", "teamB": "Seed 3", "scoreA": "", "scoreB": "", "winner": "", "court": "", "status": "Upcoming"}], "standings": {"Boys Singles": {"A": [{"team": "BC-BS2 - Corrdelle", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-BS2 - Aarva", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BS1 - Alex", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BS3 - Bilal", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BS4 - Sarvesh", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "B": [{"team": "BC-BS1 - Tye", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-BS1 - Agrim", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BS2 - Austin", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BS2 - Ardwin", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BS3 - Ryan", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "C": [{"team": "BC-BS3 - Meshv", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-BS3 - Digvijay", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BS2 - Austin", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BS1 - Gurekam", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BS2 - Jatin", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}]}, "Girls Singles": {"A": [{"team": "BC-GS1 - Ruheen", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-GS1 - Sneha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GS3 - Siddhi", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GS3 - HL-GS3", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GS2 - Sarah", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "B": [{"team": "CP-GS3 - Siya", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GS1 - Husna", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GS2 - HL-GS2", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GS1 - Pavit", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GS5 - Ayesha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "C": [{"team": "CP-GS2 - Tashvi", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GS2 - Ella", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GS1 - HL-GS1", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GS3 - Swastha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GS4 - Siana", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}]}, "Boys Doubles": {"A": [{"team": "BC-BD1 - Arjun / Jovin", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-BD1 - Edwyn / Jaskaran", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BD3 - Ali / Abhihdeep", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BD2 - HL-BD2 / HL-BD2B", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BD3 - Ishaan / Wildan", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "B": [{"team": "BC-BD2 - Gurjap / Matthew", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-BD3 - Aarav / Kavan", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BD1 - Vihaan / Smarth", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BD1 - Angad / TBD", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BD2 - Aidan / Aryan", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "C": [{"team": "CP-BD2 - Mahin / Jashandeep", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-BD2 - Ethan / Mehaan", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-BD3 - HL-BD3 / HL-BD3B", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BD1 - Vihaan / Darshil", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-BD4 - Mason / Binuka", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}]}, "Girls Doubles": {"A": [{"team": "BC-GD1 - Amanie / Baani", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-GD2 - Savvy / Yashvi", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GD3 - Nandita / Leisha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GD3 - Kalyani / Saahiba", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GD1 - Jeshvi / Sahibdeep", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "B": [{"team": "CP-GD1 - Evelyn / Viha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GD2 - Shiza / Tala", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GD1 - Kiran / Prabhleen", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GD3 - Sneha / Ashmita", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GD4 - Nylie / Sanskriti", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "C": [{"team": "BC-GD2 - BC-GD2 / BC-GD2B", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "CP-GD3 - Disha / Rishva", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "GF-GD1 - Larita / Rona", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "HL-GD2 - Nimar / Sneha", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "NP-GD2 - Aagman / Suhani", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}]}, "Mixed Doubles": {"A": [{"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "B": [{"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "C": [{"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}], "D": [{"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}, {"team": "-", "wins": 0, "losses": 0, "pf": 0, "pa": 0, "diff": 0, "rank": ""}]}}, "playoffs": {"Boys Singles": [{"matchId": 121, "round": "QF", "sourceA": "1", "sourceB": "8", "teamA": "a", "teamB": "cd", "scoreA": [21], "scoreB": [5], "winner": "a", "court": "", "status": "Upcoming", "teamAResolved": "Seed 1", "teamBResolved": "Seed 8", "winnerName": "Seed 1"}, {"matchId": 122, "round": "QF", "sourceA": "2", "sourceB": "7", "teamA": "b", "teamB": "xd", "scoreA": [21], "scoreB": [5], "winner": "b", "court": "", "status": "Upcoming", "teamAResolved": "Seed 2", "teamBResolved": "Seed 7", "winnerName": "Seed 2"}, {"matchId": 123, "round": "QF", "sourceA": "3", "sourceB": "6", "teamA": "v", "teamB": "z", "scoreA": [21], "scoreB": [5], "winner": "v", "court": "", "status": "Upcoming", "teamAResolved": "Seed 3", "teamBResolved": "Seed 6", "winnerName": "Seed 3"}, {"matchId": 124, "round": "QF", "sourceA": "4", "sourceB": "5", "teamA": "c", "teamB": "x", "scoreA": [21], "scoreB": [5], "winner": "c", "court": "", "status": "Upcoming", "teamAResolved": "Seed 4", "teamBResolved": "Seed 5", "winnerName": "Seed 4"}, {"matchId": 137, "round": "SF", "sourceA": "", "sourceB": "", "teamA": "a", "teamB": "c", "scoreA": [32], "scoreB": [3], "winner": "a", "court": "", "status": "Upcoming", "teamAResolved": "TBD", "teamBResolved": "TBD", "winnerName": "TBD"}, {"matchId": 138, "round": "SF", "sourceA": "", "sourceB": "", "teamA": "b", "teamB": "v", "scoreA": [32], "scoreB": [3], "winner": "b", "court": "", "status": "Upcoming", "teamAResolved": "TBD", "teamBResolved": "TBD", "winnerName": "TBD"}, {"matchId": 145, "round": "Finals", "sourceA": "", "sourceB": "", "teamA": "a", "teamB": "b", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "TBD", "teamBResolved": "TBD"}], "Girls Singles": [{"matchId": 125, "round": "QF", "sourceA": "W169", "sourceB": "W170", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 169", "teamBResolved": "Winner of Match 170"}, {"matchId": 126, "round": "QF", "sourceA": "W171", "sourceB": "W172", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 171", "teamBResolved": "Winner of Match 172"}, {"matchId": 127, "round": "QF", "sourceA": "W189", "sourceB": "W190", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 189", "teamBResolved": "Winner of Match 190"}, {"matchId": 128, "round": "QF", "sourceA": "W191", "sourceB": "W192", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 191", "teamBResolved": "Winner of Match 192"}, {"matchId": 139, "round": "SF", "sourceA": "W209", "sourceB": "W210", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 209", "teamBResolved": "Winner of Match 210"}, {"matchId": 140, "round": "SF", "sourceA": "W211", "sourceB": "W212", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 211", "teamBResolved": "Winner of Match 212"}, {"matchId": 146, "round": "Final", "sourceA": "W225", "sourceB": "W226", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 225", "teamBResolved": "Winner of Match 226"}], "Girls Doubles": [{"matchId": 129, "round": "QF", "sourceA": "W173", "sourceB": "W174", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 173", "teamBResolved": "Winner of Match 174"}, {"matchId": 130, "round": "QF", "sourceA": "W175", "sourceB": "W176", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [3, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 175", "teamBResolved": "Winner of Match 176"}, {"matchId": 131, "round": "QF", "sourceA": "W193", "sourceB": "W194", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [3, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 193", "teamBResolved": "Winner of Match 194"}, {"matchId": 132, "round": "QF", "sourceA": "W195", "sourceB": "W196", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [1, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 195", "teamBResolved": "Winner of Match 196"}, {"matchId": 141, "round": "SF", "sourceA": "W213", "sourceB": "W214", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 213", "teamBResolved": "Winner of Match 214"}, {"matchId": 142, "round": "SF", "sourceA": "W215", "sourceB": "W216", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 215", "teamBResolved": "Winner of Match 216"}, {"matchId": 147, "round": "Final", "sourceA": "W227", "sourceB": "W228", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 227", "teamBResolved": "Winner of Match 228"}], "Boys Doubles": [{"matchId": 133, "round": "QF", "sourceA": "W177", "sourceB": "W178", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 177", "teamBResolved": "Winner of Match 178"}, {"matchId": 134, "round": "QF", "sourceA": "W179", "sourceB": "W180", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 179", "teamBResolved": "Winner of Match 180"}, {"matchId": 135, "round": "QF", "sourceA": "W197", "sourceB": "W198", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 197", "teamBResolved": "Winner of Match 198"}, {"matchId": 136, "round": "QF", "sourceA": "W199", "sourceB": "W200", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [3, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 199", "teamBResolved": "Winner of Match 200"}, {"matchId": 143, "round": "SF", "sourceA": "W217", "sourceB": "W218", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [3, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 217", "teamBResolved": "Winner of Match 218"}, {"matchId": 144, "round": "SF", "sourceA": "W219", "sourceB": "W220", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [3, 3], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 219", "teamBResolved": "Winner of Match 220"}, {"matchId": 148, "round": "Final", "sourceA": "W229", "sourceB": "W230", "teamA": "", "teamB": "", "scoreA": [], "scoreB": [], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 229", "teamBResolved": "Winner of Match 230"}], "Mixed Doubles": [{"matchId": 161, "round": "R1", "sourceA": "A1", "sourceB": "D4", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool A #1", "teamBResolved": "Pool D #4"}, {"matchId": 162, "round": "R1", "sourceA": "C2", "sourceB": "B3", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool C #2", "teamBResolved": "Pool B #3"}, {"matchId": 163, "round": "R1", "sourceA": "B1", "sourceB": "A4", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool B #1", "teamBResolved": "Pool A #4"}, {"matchId": 164, "round": "R1", "sourceA": "D2", "sourceB": "C3", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool D #2", "teamBResolved": "Pool C #3"}, {"matchId": 181, "round": "R1", "sourceA": "C1", "sourceB": "B4", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool C #1", "teamBResolved": "Pool B #4"}, {"matchId": 182, "round": "R1", "sourceA": "A2", "sourceB": "D3", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool A #2", "teamBResolved": "Pool D #3"}, {"matchId": 183, "round": "R1", "sourceA": "D1", "sourceB": "C4", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool D #1", "teamBResolved": "Pool C #4"}, {"matchId": 184, "round": "R1", "sourceA": "B2", "sourceB": "A3", "teamA": "", "teamB": "", "scoreA": [21], "scoreB": [0], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Pool B #2", "teamBResolved": "Pool A #3"}, {"matchId": 201, "round": "QF", "sourceA": "W161", "sourceB": "W161", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 161", "teamBResolved": "Winner of Match 161"}, {"matchId": 202, "round": "QF", "sourceA": "W163", "sourceB": "W164", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 163", "teamBResolved": "Winner of Match 164"}, {"matchId": 203, "round": "QF", "sourceA": "W181", "sourceB": "W182", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 181", "teamBResolved": "Winner of Match 182"}, {"matchId": 204, "round": "QF", "sourceA": "W183", "sourceB": "W184", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 183", "teamBResolved": "Winner of Match 184"}, {"matchId": 221, "round": "SF", "sourceA": "W201", "sourceB": "W202", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 201", "teamBResolved": "Winner of Match 202"}, {"matchId": 222, "round": "SF", "sourceA": "W203", "sourceB": "W204", "teamA": "", "teamB": "", "scoreA": [15, 15], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 203", "teamBResolved": "Winner of Match 204"}, {"matchId": 231, "round": "Final", "sourceA": "W221", "sourceB": "W222", "teamA": "", "teamB": "", "scoreA": [21, 21], "scoreB": [2, 2], "winner": "", "court": "", "status": "Upcoming", "teamAResolved": "Winner of Match 221", "teamBResolved": "Winner of Match 222"}]}};
+
+let currentDivision = "All";
+let query = "";
+
+const divisionList = ["All", ...DATA.divisions];
+const tabs = document.getElementById("tabs");
+tabs.innerHTML = divisionList.map(d => `<button class="tab ${d==="All" ? "active" : ""}" data-div="${d}">${d}</button>`).join("");
+tabs.addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  currentDivision = btn.dataset.div;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+});
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  query = e.target.value.trim().toLowerCase();
+  render();
+});
+
+function byDivision(items) {
+  return items.filter(item => currentDivision === "All" || item.division === currentDivision);
+}
+function bySearch(items) {
+  if (!query) return items;
+  return items.filter(item => {
+    const text = [item.teamA, item.teamB, item.division, item.stage, item.pool, item.matchId].join(" ").toLowerCase();
+    return text.includes(query);
+  });
+}
+function visibleMatches() {
+  return bySearch(byDivision(DATA.matches));
+}
+function statusClass(status) {
+  const s = (status || "").toLowerCase();
+  if (s === "live") return "live";
+  if (s === "on deck") return "ondeck";
+  if (s === "completed") return "completed";
+  return "upcoming";
+}
+function scoreText(value) {
+  return value === null || value === undefined || value === "" ? "—" : value;
+}
+function winnerRowClass(match, team) {
+  return match.winner && match.winner === team ? "winner" : "";
+}
+function renderCards(targetId, rows, emptyText) {
+  const el = document.getElementById(targetId);
+  if (!rows.length) {
+    el.innerHTML = `<div class="empty">${emptyText}</div>`;
+    return;
+  }
+  el.innerHTML = rows.map(match => `
+    <div class="match-card ${statusClass(match.status)}">
+      <div class="match-top">
+        <div><span class="match-id">Match ${match.matchId || "—"}</span> • ${match.stage || "Match"}</div>
+        <div>${match.court ? "Court " + match.court : match.status}</div>
+      </div>
+      <div class="team-row ${winnerRowClass(match, match.teamA)}">
+        <div class="team-name">${match.teamA || "TBD"}</div>
+        <div class="score">${scoreText(match.scoreA)}</div>
+      </div>
+      <div class="team-row ${winnerRowClass(match, match.teamB)}">
+        <div class="team-name">${match.teamB || "TBD"}</div>
+        <div class="score">${scoreText(match.scoreB)}</div>
+      </div>
+      <div class="meta">${match.division}${match.pool ? " • Pool " + match.pool : ""}</div>
+    </div>
+  `).join("");
+}
+function renderStats(matches) {
+  const stats = {
+    total: matches.length,
+    live: matches.filter(m => m.status === "Live").length,
+    upcoming: matches.filter(m => m.status === "Upcoming").length,
+    completed: matches.filter(m => m.status === "Completed").length,
+  };
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="label">Division View</div><div class="value">${currentDivision}</div></div>
+    <div class="stat"><div class="label">Matches Shown</div><div class="value">${stats.total}</div></div>
+    <div class="stat"><div class="label">Live</div><div class="value">${stats.live}</div></div>
+    <div class="stat"><div class="label">Upcoming</div><div class="value">${stats.upcoming}</div></div>
+    <div class="stat"><div class="label">Completed</div><div class="value">${stats.completed}</div></div>
+  `;
+}
+function renderStandings() {
+  const container = document.getElementById("standings");
+  const divisions = currentDivision === "All" ? DATA.divisions : [currentDivision];
+  let html = "";
+  divisions.forEach(div => {
+    const pools = DATA.standings[div] || {};
+    const poolNames = Object.keys(pools).sort();
+    if (!poolNames.length) return;
+    html += `<div class="section"><h3 style="color:var(--navy); margin:0 0 12px;">${div}</h3><div class="standings-wrap">`;
+    poolNames.forEach(pool => {
+      const rows = pools[pool];
+      html += `
+        <div class="pool-card">
+          <h3>Pool ${pool}</h3>
+          <table>
+            <thead>
+              <tr><th>Rank</th><th>Team</th><th>W</th><th>L</th></tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `<tr><td>${r.rank || "—"}</td><td>${r.team}</td><td>${r.wins}</td><td>${r.losses}</td></tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  });
+  container.innerHTML = html || `<div class="empty">No standings available for this view.</div>`;
+}
+function roundLabel(round) {
+  const key = (round || "").trim().toUpperCase();
+  if (key === "PI") return "Play-In";
+  if (key === "R1") return "Round 1";
+  if (key === "QF" || key === "QF1") return "Quarterfinals";
+  if (key === "SF") return "Semifinals";
+  if (key === "FINALS" || key === "FINAL") return "Final";
+  return round || "Round";
+}
+function renderPlayoffs() {
+  const container = document.getElementById("playoffs");
+  const divisions = currentDivision === "All" ? DATA.divisions : [currentDivision];
+  let html = "";
+  divisions.forEach(div => {
+    const rows = DATA.playoffs[div] || [];
+    if (!rows.length) return;
+    const groups = {};
+    rows.forEach(r => {
+      const key = roundLabel(r.round);
+      groups[key] = groups[key] || [];
+      groups[key].push(r);
+    });
+    const order = ["Play-In", "Round 1", "Quarterfinals", "Semifinals", "Final"];
+    html += `<div class="section"><h3 style="color:var(--navy); margin:0 0 12px;">${div}</h3><div class="bracket-scroll"><div class="bracket">`;
+    order.filter(name => groups[name]).forEach(round => {
+      html += `<div class="round-col"><div class="round-title">${round}</div>`;
+      groups[round].forEach(match => {
+        const winnerA = match.winnerName && match.winnerName === match.teamAResolved ? "winner" : "";
+        const winnerB = match.winnerName && match.winnerName === match.teamBResolved ? "winner" : "";
+        const scoreA = (match.scoreA || []).length ? match.scoreA.join(" / ") : "—";
+        const scoreB = (match.scoreB || []).length ? match.scoreB.join(" / ") : "—";
+        html += `
+          <div class="bracket-match">
+            <div class="mid">Match ${match.matchId}${match.status ? " • " + match.status : ""}</div>
+            <div class="bteam ${winnerA}">
+              <div>${match.teamAResolved || "TBD"}</div>
+              <div>${scoreA}</div>
+            </div>
+            <div class="bteam ${winnerB}">
+              <div>${match.teamBResolved || "TBD"}</div>
+              <div>${scoreB}</div>
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+    html += `</div></div></div>`;
+  });
+  container.innerHTML = html || `<div class="empty">No playoff bracket data available for this view.</div>`;
+}
+function render() {
+  const matches = visibleMatches();
+  renderStats(matches);
+  renderCards("liveMatches", matches.filter(m => m.status === "Live"), "No live matches right now.");
+  renderCards("onDeckMatches", matches.filter(m => m.status === "On Deck"), "No on-deck matches.");
+  renderCards("upcomingMatches", matches.filter(m => m.status === "Upcoming"), "No upcoming matches.");
+  renderCards("completedMatches", matches.filter(m => m.status === "Completed"), "No completed matches yet.");
+  renderStandings();
+  renderPlayoffs();
+}
+render();
+</script>
+</body>
+</html>
